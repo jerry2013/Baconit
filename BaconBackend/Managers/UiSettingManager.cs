@@ -461,7 +461,7 @@ namespace BaconBackend.Managers
                     value,
                     "PostView_Markdown_FontSize"
                 );
-                _baconMan.SettingsMan.WriteToRoamingSettings("UiSettingManager.PostView_Markdown_FontSize", _postViewMarkdownFontSize.Value);
+                _baconMan.SettingsMan.WriteToRoamingSettings("UiSettingManager.PostView_Markdown_FontSize", value);
             }
         }
         private int? _postViewMarkdownFontSize;

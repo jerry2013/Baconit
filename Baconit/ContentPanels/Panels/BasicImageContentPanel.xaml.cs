@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -14,8 +15,10 @@ using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using BaconBackend.DataObjects;
+using Microsoft.Toolkit.Uwp.UI.Animations;
+using Microsoft.Toolkit.Uwp.UI.Controls;
+using Microsoft.Toolkit.Uwp.UI.Extensions;
 
 namespace Baconit.ContentPanels.Panels
 {
@@ -330,6 +333,74 @@ namespace Baconit.ContentPanels.Panels
                 e.IsHandled = true;
                 //ui_scrollViewer.ChangeView(null, null, _minZoomFactor);
             }
+        }
+
+        private async void ScrollViewerOnDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+        {
+            var control = sender as ScrollViewer;
+            var doubleTapPoint = e.GetPosition(control);
+            if (control == null)
+            {
+                return;
+            }
+            Debug.Assert(control != null, "control != null");
+
+            if (control.ZoomFactor != 1)
+            {
+                control.ZoomToFactor(1);
+            }
+            else if (control.ZoomFactor == 1)
+            {
+                control.ZoomToFactor(2);
+
+                var dispatcher = Window.Current.CoreWindow.Dispatcher;
+                await dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
+                {
+                    control.ScrollToHorizontalOffset(doubleTapPoint.X);
+                    control.ScrollToVerticalOffset(doubleTapPoint.Y);
+                });
+            }
+        }
+
+        private void ImageScrollViewer_OnViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
+        {
+            var control = sender as ScrollViewer;
+            var images = control.FindChildren<ImageEx>().ToList();
+            images.ForEach(p =>
+            {
+                if (p.ActualHeight > p.ActualWidth)
+                {
+                    p.Height = control.ViewportHeight;
+                    return;
+                }
+                p.Width = control.ViewportWidth;
+            });
+        }
+
+        private void ImageScrollViewer_OnViewChanging(object sender, ScrollViewerViewChangingEventArgs e)
+        {
+            var control = sender as ScrollViewer;
+            var images = control.FindChildren<ImageEx>().ToList();
+            images.ForEach(p =>
+            {
+                if (p.ActualHeight > p.ActualWidth)
+                {
+                    p.Height = control.ViewportHeight;
+                    return;
+                }
+                p.Width = control.ViewportWidth;
+            });
+        }
+
+        private void ImageScrollViewer_OnSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            var control = sender as ScrollViewer;
+            var images = control.FindChildren<ImageEx>().ToList();
+            images.ForEach(p =>
+            {
+                p.Width = control.ViewportWidth;
+                p.Height = control.ViewportHeight;
+            });
         }
     }
 }

@@ -77,13 +77,23 @@
 
             <FlipView.ItemTemplate>
                 <DataTemplate>
-                    <Grid>
+                    <ScrollViewer x:Name="ImageScrollViewer"
+                                  ViewChanged="ImageScrollViewer_OnViewChanged"
+                                  ViewChanging="ImageScrollViewer_OnViewChanging"
+                                  SizeChanged="ImageScrollViewer_OnSizeChanged"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Auto"
+                                  IsZoomInertiaEnabled="True"
+                                  Style="{StaticResource ScrollViewerStyle}"
+                                  DoubleTapped="ScrollViewerOnDoubleTapped"
+                                  ZoomMode="Enabled"
+                                  MinZoomFactor="1">
                         <controls:ImageEx 
                             Source="{Binding Uri}" 
                             Stretch="Uniform" 
                             RightTapped="ContentRoot_RightTapped" 
                             Holding="ContentRoot_Holding" />
-                    </Grid>
+                    </ScrollViewer>
                 </DataTemplate>
             </FlipView.ItemTemplate>
         </FlipView>

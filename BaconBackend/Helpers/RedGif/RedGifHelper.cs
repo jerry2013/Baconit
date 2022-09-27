@@ -7,7 +7,7 @@ namespace BaconBackend.Helpers.RedGif
 {
     public class RedGifHelper
     {
-        private const string BotUserAgent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
+        private const string BotUserAgent = "NSPlayer/12.00.19041.2006 WMFSDK/12.00.19041.2006";
         private const string GetInfoUrl = "https://api.redgifs.com/v2/gifs/";
 
         public static async Task<RedGifInfo> GetVideoInfoAsync(string gifId)
@@ -17,8 +17,8 @@ namespace BaconBackend.Helpers.RedGif
             {
                 throw new Exception($"Could not find video info for redgif id {gifId}");
             }
-
-            return JsonConvert.DeserializeObject<RedGifInfo>(response);
+            var data = JsonConvert.DeserializeObject<RedGifInfo>(response);
+            return data;
         }
 
         private static async Task<string> HttpGetAsync(string uri)

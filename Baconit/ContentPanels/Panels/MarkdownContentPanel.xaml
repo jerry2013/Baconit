@@ -4,13 +4,19 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="using:Baconit.ContentPanels.Panels"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:universalMarkdown="using:UniversalMarkdown"
+             xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
              d:DesignHeight="300"
              d:DesignWidth="400"
              mc:Ignorable="d">
 
     <Grid Background="#191919">
-        <ScrollViewer Style="{StaticResource ScrollViewerStyle}">
-            <Grid x:Name="ui_contentRoot" Margin="12" />
+        <ScrollViewer Style="{StaticResource ScrollViewerStyle}" FontSize="12">
+            <Grid Margin="12">
+                <controls:MarkdownTextBlock 
+                    x:Name="MarkdownTextBlock"
+                    Text="{Binding Path=MarkdownText}"></controls:MarkdownTextBlock>
+            </Grid>
         </ScrollViewer>
     </Grid>
 </UserControl>
