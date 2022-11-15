@@ -5,9 +5,10 @@ using Newtonsoft.Json;
 
 namespace BaconBackend.Helpers.RedGif
 {
-    public class RedGifHelper
+    public static class RedGifHelper
     {
-        private const string BotUserAgent = "NSPlayer/12.00.19041.2006 WMFSDK/12.00.19041.2006";
+        private const string GetAgentString = "https://api.redgifs.com/info";
+        public const string BotUserAgent = "NSPlayer/12.00.15254.0603 WMFSDK/12.00.15254.0603";
         private const string GetInfoUrl = "https://api.redgifs.com/v2/gifs/";
 
         public static async Task<RedGifInfo> GetVideoInfoAsync(string gifId)
@@ -20,7 +21,7 @@ namespace BaconBackend.Helpers.RedGif
             var data = JsonConvert.DeserializeObject<RedGifInfo>(response);
             return data;
         }
-
+        
         private static async Task<string> HttpGetAsync(string uri)
         {
             var response = await NetworkManager.MakeGetRequest(uri, string.Empty, BotUserAgent);

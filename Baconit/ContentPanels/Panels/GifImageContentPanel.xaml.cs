@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Media.Core;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -116,7 +117,7 @@ namespace Baconit.ContentPanels.Panels
                         _mGifVideo.Tapped += OnVideoTapped;
                         _mGifVideo.CurrentStateChanged += OnVideoCurrentStateChanged;
                         _mGifVideo.IsLooping = true;
-
+                        
                         // Set the source
                         _mGifVideo.Source = new Uri(gifUrl, UriKind.Absolute);
                         _mGifVideo.Play();

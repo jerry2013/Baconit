@@ -966,7 +966,6 @@ namespace Baconit.ContentPanels
                 {
                     // First tell the post it has a host
                     panelBase.OnHostAdded(host);
-
                     // Then tell the host it has a panel.
                     host.OnPanelAvailable(panelBase);
                 }

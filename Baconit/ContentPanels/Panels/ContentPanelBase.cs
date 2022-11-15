@@ -116,6 +116,7 @@ namespace Baconit.ContentPanels.Panels
                 // Tell the manager that we are loaded.
                 Task.Run(() =>
                 {
+                    IsLoading = false;
                     ContentPanelMaster.Current.OnContentLoadComplete(Source.Id);
                 });
             }

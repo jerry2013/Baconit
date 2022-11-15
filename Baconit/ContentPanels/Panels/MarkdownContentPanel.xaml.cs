@@ -17,20 +17,10 @@ namespace Baconit.ContentPanels.Panels
         /// </summary>
         private readonly IContentPanelBaseInternal _contentPanelBase;
 
-        
-        public static readonly DependencyProperty MarkdownTextProperty = DependencyProperty.Register(
-            "MarkdownText",
-            typeof(string),
-            typeof(MarkdownContentPanel),
-            new PropertyMetadata(null)
-        );
-
-
-        public string MarkdownText
-        {
-            get => (string)GetValue(MarkdownTextProperty);
-            set => SetValue(MarkdownTextProperty, value);
-        }
+        /// <summary>
+        /// The current markdown text box.
+        /// </summary>
+        private MarkdownTextBlock _markdownBlock;
 
         public MarkdownContentPanel(IContentPanelBaseInternal panelBase)
         {
@@ -61,30 +51,25 @@ namespace Baconit.ContentPanels.Panels
         /// <summary>
         /// Fired when we should load the content.
         /// </summary>
-        public void OnPrepareContent()
+        public async void OnPrepareContent()
         {
-            var fontSizeBinding = new Binding
+            // Since some of this can be costly, delay the work load until we aren't animating.
+            await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () =>
             {
-                Source = App.BaconMan.UiSettingsMan,
-                Path = new PropertyPath("PostViewMarkdownFontSize"),
-                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged,
-                Mode = BindingMode.TwoWay
-            };
-            SetBinding(FontSizeProperty, fontSizeBinding);
-            MarkdownTextBlock.SetBinding(FontSizeProperty, fontSizeBinding);
-            MarkdownText = _contentPanelBase.Source.SelfText;
+                _markdownBlock = new MarkdownTextBlock();
+                _markdownBlock.OnMarkdownLinkTapped += MarkdownBlock_OnMarkdownLinkTapped;
+                _markdownBlock.OnMarkdownReady += MarkdownBox_OnMarkdownReady;
+                _markdownBlock.Markdown = _contentPanelBase.Source.SelfText;
 
-            //// Since some of this can be costly, delay the work load until we aren't animating.
-            //await CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () =>
-            //{
-            //    _markdownBlock = new MarkdownTextBlock();
-            //    _markdownBlock.OnMarkdownLinkTapped += MarkdownBlock_OnMarkdownLinkTapped;
-            //    _markdownBlock.OnMarkdownReady += MarkdownBox_OnMarkdownReady;
-            //    _markdownBlock.Markdown = _contentPanelBase.Source.SelfText;
+                var fontSizeBinding = new Binding
+                {
+                    Source = App.BaconMan.UiSettingsMan,
+                    Path = new PropertyPath("PostView_Markdown_FontSize")
+                };
+                _markdownBlock.SetBinding(FontSizeProperty, fontSizeBinding);
 
-
-            //    ui_contentRoot.Children.Add(_markdownBlock);
-            //});
+                ui_contentRoot.Children.Add(_markdownBlock);
+            });
         }
 
         /// <summary>
@@ -92,7 +77,16 @@ namespace Baconit.ContentPanels.Panels
         /// </summary>
         public void OnDestroyContent()
         {
+            // Clear the markdown
+            if (_markdownBlock != null)
+            {
+                _markdownBlock.OnMarkdownReady -= MarkdownBox_OnMarkdownReady;
+                _markdownBlock.OnMarkdownLinkTapped -= MarkdownBlock_OnMarkdownLinkTapped;
+            }
+            _markdownBlock = null;
 
+            // Clear the UI
+            ui_contentRoot.Children.Clear();
         }
 
         /// <summary>
@@ -120,7 +114,7 @@ namespace Baconit.ContentPanels.Panels
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void MarkdownBlock_OnMarkdownLinkTapped(object sender, MarkdownLinkTappedArgs e)
+        private static void MarkdownBlock_OnMarkdownLinkTapped(object sender, MarkdownLinkTappedArgs e)
         {
             App.BaconMan.ShowGlobalContent(e.Link);
         }

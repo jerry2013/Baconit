@@ -11,12 +11,8 @@
              mc:Ignorable="d">
 
     <Grid Background="#191919">
-        <ScrollViewer Style="{StaticResource ScrollViewerStyle}" FontSize="12">
-            <Grid Margin="12">
-                <controls:MarkdownTextBlock 
-                    x:Name="MarkdownTextBlock"
-                    Text="{Binding Path=MarkdownText}"></controls:MarkdownTextBlock>
-            </Grid>
+        <ScrollViewer Style="{StaticResource ScrollViewerStyle}">
+            <Grid x:Name="ui_contentRoot" Margin="12" />
         </ScrollViewer>
     </Grid>
 </UserControl>
