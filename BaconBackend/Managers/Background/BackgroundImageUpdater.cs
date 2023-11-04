@@ -1,7 +1,6 @@
 ﻿using BaconBackend.Collectors;
 using BaconBackend.DataObjects;
 using BaconBackend.Helpers;
-using Microsoft.ApplicationInsights.DataContracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -101,7 +100,7 @@ namespace BaconBackend.Managers.Background
                     // Update lock screen images
                     if (IsLockScreenEnabled)
                     {
-                        TelemetryManager.ReportLog(this, "Updating lock screen", SeverityLevel.Verbose);
+                        TelemetryManager.ReportLog(this, "Updating lock screen", "Verbose");
 
                         // Make a deferral scope object so we can do our work without being killed.
                         // Note! We need release this object or it will hang the app around forever!
@@ -114,17 +113,17 @@ namespace BaconBackend.Managers.Background
 
                     if(IsDesktopEnabled)
                     {
-                        TelemetryManager.ReportLog(this, "Updating lock screen", SeverityLevel.Verbose); 
+                        TelemetryManager.ReportLog(this, "Updating lock screen", "Verbose"); 
                                         
                         // Shortcut: If lock screen in enabled and it is the same subreddit just share the same cache. If not,
                         // get the desktop images
                         if (IsLockScreenEnabled && LockScreenSubredditName.Equals(DesktopSubredditName))
                         {
-                            TelemetryManager.ReportLog(this, "Desktop same sub as lockscreen, skipping image update.", SeverityLevel.Verbose);
+                            TelemetryManager.ReportLog(this, "Desktop same sub as lockscreen, skipping image update.", "Verbose");
                         }
                         else
                         {
-                            TelemetryManager.ReportLog(this, "Updating desktop image", SeverityLevel.Verbose);
+                            TelemetryManager.ReportLog(this, "Updating desktop image", "Verbose");
 
                             // Make a deferral scope object so we can do our work without being killed.
                             // Note! We need release this object or it will hang the app around forever!
@@ -139,7 +138,7 @@ namespace BaconBackend.Managers.Background
                     // Update lock screen images
                     if (IsBandWallpaperEnabled)
                     {
-                        TelemetryManager.ReportLog(this, "Updating band wallpaper", SeverityLevel.Verbose);
+                        TelemetryManager.ReportLog(this, "Updating band wallpaper", "Verbose");
 
                         // Make a deferral scope object so we can do our work without being killed.
                         // Note! We need release this object or it will hang the app around forever!
@@ -294,7 +293,7 @@ namespace BaconBackend.Managers.Background
 
             if (!wasSuccess)
             {
-                TelemetryManager.ReportLog(this, "Image update failed", SeverityLevel.Error);
+                TelemetryManager.ReportLog(this, "Image update failed", "Error");
                 TelemetryManager.ReportUnexpectedEvent(this, type == UpdateTypes.LockScreen ? "LockscreenImageUpdateFailed" : "DesktopImageUpdateFailed");
             }
             else

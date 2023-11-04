@@ -1,6 +1,7 @@
 ﻿using BaconBackend.Collectors;
 using BaconBackend.DataObjects;
 using BaconBackend.Helpers;
+using NotificationsExtensions;
 using NotificationsExtensions.Badges;
 using NotificationsExtensions.Toasts;
 using System;
@@ -175,10 +176,10 @@ namespace BaconBackend.Managers.Background
                 {
                     // Make the visual
                     var visual = new ToastVisual();
-                    visual.TitleText = new ToastText { Text = newNote.Item1 };
+                    visual.BindingGeneric.Children.Add(new AdaptiveText { Text = newNote.Item1 });
                     if(!string.IsNullOrWhiteSpace(newNote.Item2))
                     {
-                        visual.BodyTextLine1 = new ToastText { Text = newNote.Item2 };
+                        visual.BindingGeneric.Children.Add(new AdaptiveText{ Text = newNote.Item2 });
                     }
 
                     // Make the toast content

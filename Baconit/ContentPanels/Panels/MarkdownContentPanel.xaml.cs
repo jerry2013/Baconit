@@ -114,7 +114,7 @@ namespace Baconit.ContentPanels.Panels
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private static void MarkdownBlock_OnMarkdownLinkTapped(object sender, MarkdownLinkTappedArgs e)
+        private static void MarkdownBlock_OnMarkdownLinkTapped(object sender, OnMarkdownLinkTappedArgs e)
         {
             App.BaconMan.ShowGlobalContent(e.Link);
         }
@@ -124,7 +124,7 @@ namespace Baconit.ContentPanels.Panels
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void MarkdownBox_OnMarkdownReady(object sender, MarkdownReadyArgs e)
+        private void MarkdownBox_OnMarkdownReady(object sender, OnMarkdownReadyArgs e)
         {
             if (e.WasError)
             {

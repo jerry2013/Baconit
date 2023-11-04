@@ -1,6 +1,4 @@
-﻿using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace BaconBackend.Managers
@@ -21,7 +19,6 @@ namespace BaconBackend.Managers
         /// <param name="eventName"></param>
         public static void ReportEvent(object component, string eventName)
         {
-            TelemetryClientInstance?.TrackEvent(component.GetType().Name + ":" +eventName);
         }
 
         /// <summary>
@@ -32,9 +29,6 @@ namespace BaconBackend.Managers
         /// <param name="data"></param>
         public void ReportEvent(object component, string eventName, string data)
         {
-            var eventT = new EventTelemetry {Name = component.GetType().Name + ":" + eventName};
-            eventT.Properties.Add("data", data);
-            TelemetryClientInstance?.TrackEvent(eventName);
         }
 
         /// <summary>
@@ -45,18 +39,10 @@ namespace BaconBackend.Managers
         /// <param name="exception"></param>
         public static void ReportUnexpectedEvent(object component, string eventName, Exception exception = null)
         {
-            var eventT = new EventTelemetry {Name = component.GetType().Name + ":" + eventName};
-            eventT.Properties.Add("error", "unexpected");
-            if(exception != null)
-            {
-                eventT.Properties.Add("exception", exception.Message);
-            }
-            TelemetryClientInstance?.TrackEvent(eventName);
         }
 
         public static void TrackCrash(Exception exception, IDictionary<string, string> properties)
         {
-            TelemetryClientInstance?.TrackException(exception, properties);
         }
 
         /// <summary>
@@ -67,7 +53,6 @@ namespace BaconBackend.Managers
         /// <param name="timeTaken"></param>
         public void ReportPerfEvent(object component, string eventName, TimeSpan timeTaken)
         {
-            TelemetryClientInstance?.TrackMetric(component.GetType().Name + ":" + eventName, timeTaken.TotalMilliseconds);
         }
 
         /// <summary>
@@ -79,7 +64,6 @@ namespace BaconBackend.Managers
         /// <param name="startTime"></param>
         public static void ReportPerfEvent(object component, string eventName, DateTime startTime)
         {
-            TelemetryClientInstance?.TrackMetric(component.GetType().Name + ":" + eventName, (DateTime.Now - startTime).TotalMilliseconds);
         }
 
         /// <summary>
@@ -90,7 +74,6 @@ namespace BaconBackend.Managers
         /// <param name="metric"></param>
         public void ReportMetric(object component, string eventName, double metric)
         {
-            TelemetryClientInstance?.TrackMetric(component.GetType().Name + ":" + eventName + ":" + eventName, metric);
         }
 
         /// <summary>
@@ -99,7 +82,6 @@ namespace BaconBackend.Managers
         /// <param name="pageName"></param>
         public static void ReportPageView(string pageName)
         {
-            TelemetryClientInstance?.TrackPageView(pageName);
         }
 
         /// <summary>
@@ -108,28 +90,8 @@ namespace BaconBackend.Managers
         /// <param name="component"></param>
         /// <param name="message"></param>
         /// <param name="level"></param>
-        public static void ReportLog(object component, string message, SeverityLevel level = SeverityLevel.Information)
+        public static void ReportLog(object component, string message, string level = null)
         {
-            TelemetryClientInstance?.TrackTrace($"[{component.GetType().Name}] {message}", level);
-        }
-
-        private static TelemetryClient _telemetryClient;
-        private static TelemetryClient TelemetryClientInstance
-        {
-            get
-            {
-                if (_baconMan.UiSettingsMan.AnalyticCollection && _telemetryClient == null)
-                {
-                    _telemetryClient = new TelemetryClient();
-                }
-
-                if (_baconMan.UiSettingsMan.AnalyticCollection == false)
-                {
-                    _telemetryClient = null;
-                }
-
-                return _telemetryClient;
-            }
         }
     }
 }

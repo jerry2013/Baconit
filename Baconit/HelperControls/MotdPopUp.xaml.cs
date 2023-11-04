@@ -80,7 +80,7 @@ namespace Baconit.HelperControls
             e.IsHandled = true;
         }
 
-        private void MarkdownText_OnMarkdownLinkTapped(object sender, UniversalMarkdown.MarkdownLinkTappedArgs e)
+        private void MarkdownText_OnMarkdownLinkTapped(object sender, UniversalMarkdown.OnMarkdownLinkTappedArgs e)
         {            
             try
             {

@@ -16,9 +16,8 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using BaconBackend.DataObjects;
-using Microsoft.Toolkit.Uwp.UI.Animations;
+using Microsoft.Toolkit.Uwp.UI;
 using Microsoft.Toolkit.Uwp.UI.Controls;
-using Microsoft.Toolkit.Uwp.UI.Extensions;
 
 namespace Baconit.ContentPanels.Panels
 {
@@ -335,7 +334,7 @@ namespace Baconit.ContentPanels.Panels
             }
         }
 
-        private async void ScrollViewerOnDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+        private void ScrollViewerOnDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
         {
             var control = sender as ScrollViewer;
             var doubleTapPoint = e.GetPosition(control);
@@ -347,26 +346,18 @@ namespace Baconit.ContentPanels.Panels
 
             if (control.ZoomFactor != 1)
             {
-                control.ZoomToFactor(1);
+                control.ChangeView(null, null, 1);
             }
             else if (control.ZoomFactor == 1)
             {
-                control.ZoomToFactor(2);
-
-                var dispatcher = Window.Current.CoreWindow.Dispatcher;
-                await dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
-                {
-                    control.ScrollToHorizontalOffset(doubleTapPoint.X);
-                    control.ScrollToVerticalOffset(doubleTapPoint.Y);
-                });
+                control.ChangeView(doubleTapPoint.X, doubleTapPoint.Y, 2);
             }
         }
 
         private void ImageScrollViewer_OnViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
         {
             var control = sender as ScrollViewer;
-            var images = control.FindChildren<ImageEx>().ToList();
-            images.ForEach(p =>
+            foreach (var p in control.FindChildren().Where(c => c is ImageEx))
             {
                 if (p.ActualHeight > p.ActualWidth)
                 {
@@ -374,14 +365,13 @@ namespace Baconit.ContentPanels.Panels
                     return;
                 }
                 p.Width = control.ViewportWidth;
-            });
+            }
         }
 
         private void ImageScrollViewer_OnViewChanging(object sender, ScrollViewerViewChangingEventArgs e)
         {
             var control = sender as ScrollViewer;
-            var images = control.FindChildren<ImageEx>().ToList();
-            images.ForEach(p =>
+            foreach (var p in control.FindChildren().Where(c => c is ImageEx))
             {
                 if (p.ActualHeight > p.ActualWidth)
                 {
@@ -389,18 +379,17 @@ namespace Baconit.ContentPanels.Panels
                     return;
                 }
                 p.Width = control.ViewportWidth;
-            });
+            }
         }
 
         private void ImageScrollViewer_OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
             var control = sender as ScrollViewer;
-            var images = control.FindChildren<ImageEx>().ToList();
-            images.ForEach(p =>
+            foreach (var p in control.FindChildren().Where(c => c is ImageEx))
             {
                 p.Width = control.ViewportWidth;
                 p.Height = control.ViewportHeight;
-            });
+            }
         }
     }
 }

@@ -58,10 +58,10 @@ namespace Baconit
             BaconMan = new BaconManager(false);
 
             // Now telemetry
-            Microsoft.ApplicationInsights.WindowsAppInitializer.InitializeAsync(
-                Microsoft.ApplicationInsights.WindowsCollectors.Metadata |
-                Microsoft.ApplicationInsights.WindowsCollectors.UnhandledException |
-                Microsoft.ApplicationInsights.WindowsCollectors.Session);
+            //Microsoft.ApplicationInsights.WindowsAppInitializer.InitializeAsync(
+            //    Microsoft.ApplicationInsights.WindowsCollectors.Metadata |
+            //    Microsoft.ApplicationInsights.WindowsCollectors.UnhandledException |
+            //    Microsoft.ApplicationInsights.WindowsCollectors.Session);
 
             // Init the app
             InitializeComponent();
@@ -245,7 +245,7 @@ namespace Baconit
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        private static void OnUnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
         {
             if (Debugger.IsAttached)
             {

@@ -169,10 +169,10 @@ namespace BaconBackend.Managers.Background
                                 BandIcon tileIcon = null;
 
                                 // This icon should be 24x24 pixels
-                                var smallIconBitmap = await BitmapFactory.New(1, 1).FromContent(new Uri("ms-appx:///Assets/AppAssets/BandIcons/BandImage24.png", UriKind.Absolute));
+                                var smallIconBitmap = await BitmapFactory.FromContent(new Uri("ms-appx:///Assets/AppAssets/BandIcons/BandImage24.png", UriKind.Absolute));
                                 smallIcon = smallIconBitmap.ToBandIcon();
                                 // This icon should be 46x46 pixels
-                                var tileIconBitmap = await BitmapFactory.New(1, 1).FromContent(new Uri("ms-appx:///Assets/AppAssets/BandIcons/BandImage46.png", UriKind.Absolute));
+                                var tileIconBitmap = await BitmapFactory.FromContent(new Uri("ms-appx:///Assets/AppAssets/BandIcons/BandImage46.png", UriKind.Absolute));
                                 tileIcon = tileIconBitmap.ToBandIcon();
      
                                 // Create a new tile

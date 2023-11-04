@@ -308,7 +308,7 @@ namespace Baconit.HelperControls
             }
         }
 
-        private void MarkdownTextBox_OnMarkdownLinkTapped(object sender, UniversalMarkdown.MarkdownLinkTappedArgs e)
+        private void MarkdownTextBox_OnMarkdownLinkTapped(object sender, UniversalMarkdown.OnMarkdownLinkTappedArgs e)
         {
             App.BaconMan.ShowGlobalContent(e.Link);
             FireShouldClose();

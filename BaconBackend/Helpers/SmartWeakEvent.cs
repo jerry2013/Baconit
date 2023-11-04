@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -82,16 +83,8 @@ namespace BaconBackend.Helpers
             var d = (Delegate)(object)eh;
 
             var attributes = d.GetMethodInfo().DeclaringType.GetTypeInfo().GetCustomAttributes(typeof(CompilerGeneratedAttribute), false);
-            var count = 0;
-            using (var enumerator = attributes.GetEnumerator())
-            {
-                while (enumerator.MoveNext())
-                {
-                    count++;
-                }
-            }
 
-            if (count != 0)
+            if (attributes.Any())
                 throw new ArgumentException("Cannot create weak event to anonymous method with closure.");
 
             if (_eventEntries.Count == _eventEntries.Capacity)
