@@ -64,7 +64,7 @@ namespace Baconit.ContentPanels.Panels
                 var fontSizeBinding = new Binding
                 {
                     Source = App.BaconMan.UiSettingsMan,
-                    Path = new PropertyPath("PostView_Markdown_FontSize")
+                    Path = new PropertyPath("PostViewMarkdownFontSize")
                 };
                 _markdownBlock.SetBinding(FontSizeProperty, fontSizeBinding);
 

@@ -496,6 +496,11 @@ namespace Baconit.ContentPanels
             return false;
         }
 
+        private void NsfwBlockRoot_AccessKeyInvoked(object sender, AccessKeyInvokedEventArgs e)
+        {
+            NsfwBlockRoot_Tapped(sender, null);
+        }
+
         /// <summary>
         /// Fired when the NSFW block is tapped.
         /// </summary>

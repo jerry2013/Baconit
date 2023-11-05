@@ -40,6 +40,7 @@ namespace BaconBackend.Managers
         {
             get
             {
+                _appOpenedCount = 0;
                 if (_appOpenedCount.HasValue) return _appOpenedCount.Value;
                 _appOpenedCount = _baconMan.SettingsMan.RoamingSettings.ContainsKey("UiSettingManager.AppOpenedCount") 
                     ? _baconMan.SettingsMan.ReadFromRoamingSettings<int>("UiSettingManager.AppOpenedCount") 

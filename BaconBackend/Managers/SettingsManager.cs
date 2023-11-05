@@ -139,7 +139,7 @@ namespace BaconBackend.Managers
                     {
                         // Parse the settings file into the dictionary.
                         var serializer = new JsonSerializer();
-                        _localSettings = await Task.Run(() => serializer.Deserialize<Dictionary<string, object>>(jsonReader));
+                        _localSettings = serializer.Deserialize<Dictionary<string, object>>(jsonReader);
                     }
                 }
                 else

@@ -6,6 +6,8 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using BaconBackend.Managers;
+using System.Linq;
+using BaconBackend.Helpers.YouTube;
 
 namespace Baconit.ContentPanels.Panels
 {
@@ -122,7 +124,22 @@ namespace Baconit.ContentPanels.Panels
             // Navigate
             try
             {
-                _webView.Navigate(new Uri(_contentPanelBase.Source.Url, UriKind.Absolute));
+                var uri = new Uri(_contentPanelBase.Source.Url, UriKind.Absolute);
+                if (uri.Segments.Last().EndsWith(".gif"))
+                {
+                    _webView.NavigateToString(
+                        $"<html><body style=\"background:#333\"><img style=\"display:block;margin:0 auto;max-width:100vw;max-height:100vh;\" src=\"{uri.AbsoluteUri}\"/></body></html>"
+                    );
+                }
+                else
+                {
+                    var youtubeId = YouTubeHelper.GetYoutubeId(uri.AbsoluteUri);
+                    if (youtubeId.Length > 0)
+                    {
+                        uri = new Uri($"https://www.youtube.com/embed/{youtubeId}?feature=oembed", UriKind.Absolute);
+                    }
+                    _webView.Navigate(uri);
+                }
             }
             catch (Exception e)
             {
@@ -171,10 +188,14 @@ namespace Baconit.ContentPanels.Panels
             HideReadingModeLoading();
         }
 
-        private void ContentLoading(WebView sender, WebViewContentLoadingEventArgs args)
+        private async void ContentLoading(WebView sender, WebViewContentLoadingEventArgs args)
         {
             _contentPanelBase.FireOnLoading(false);
             HideReadingModeLoading();
+
+            await _webView.InvokeScriptAsync("eval", new string[]{
+                "window.addEventListener('load', () => document.querySelectorAll('video').forEach(v => {v.muted=true}))"
+            });
         }
 
         private void NavigationCompleted(WebView sender, WebViewNavigationCompletedEventArgs args)

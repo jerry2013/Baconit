@@ -117,6 +117,8 @@ namespace BaconBackend.Managers
                 LastUpdateTime = DateTime.Now;
             }
 
+            return;
+
             // If we are not a background task check message of the day
             if(!_baconMan.IsBackgroundTask)
             {

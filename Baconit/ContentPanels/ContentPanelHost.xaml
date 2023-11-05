@@ -248,6 +248,8 @@
         <Grid x:Name="ui_nsfwBlockRoot"
               Background="#191919"
               Tapped="NsfwBlockRoot_Tapped"
+              AccessKey="X"
+              AccessKeyInvoked="NsfwBlockRoot_AccessKeyInvoked"
               Visibility="Collapsed">
             <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Grid.RowDefinitions>

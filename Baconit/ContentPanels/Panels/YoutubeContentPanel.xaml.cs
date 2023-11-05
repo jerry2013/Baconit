@@ -85,9 +85,10 @@ namespace Baconit.ContentPanels.Panels
                     }
 
                     // Setup the video
-                    _videoPlayer = new MediaElement {AutoPlay = false, AreTransportControlsEnabled = true};
+                    _videoPlayer = new MediaElement {AutoPlay = true, AreTransportControlsEnabled = true};
                     _videoPlayer.CurrentStateChanged += VideoPlayerOnCurrentStateChanged;
                     _videoPlayer.Source = new Uri(youtubeUrl);
+                    _videoPlayer.IsMuted = true;
                     ui_contentRoot.Children.Add(_videoPlayer);
                 });
             });
@@ -221,58 +222,7 @@ namespace Baconit.ContentPanels.Panels
 
             try
             {
-                // Try to find the ID
-                var youtubeVideoId = string.Empty;
-                var urlLower = source.Url.ToLower();
-                if (urlLower.Contains("youtube.com"))
-                {
-                    // Check for an attribution link
-                    var attribution = urlLower.IndexOf("attribution_link?", StringComparison.OrdinalIgnoreCase);
-                    if (attribution != -1)
-                    {
-                        // We need to parse out the video id
-                        // looks like this attribution_link?a=bhvqtDGQD6s&amp;u=%2Fwatch%3Fv%3DrK0D1ehO7CA%26feature%3Dshare
-                        var uIndex = urlLower.IndexOf("u=", attribution, StringComparison.OrdinalIgnoreCase);
-                        var encodedUrl = source.Url.Substring(uIndex + 2);
-                        var decodedUrl = WebUtility.UrlDecode(encodedUrl);
-                        urlLower = decodedUrl.ToLower();
-                        // At this point urlLower should be something like "v=jfkldfjl&feature=share"
-                    }
-
-                    var beginId = urlLower.IndexOf("v=", StringComparison.OrdinalIgnoreCase);
-                    var endId = urlLower.IndexOf("&", beginId, StringComparison.OrdinalIgnoreCase);
-                    if (beginId == -1) return youtubeVideoId;
-                    if (endId == -1)
-                    {
-                        endId = urlLower.Length;
-                    }
-                    // Important! Since this might be case sensitive use the original url!
-                    beginId += 2;
-                    youtubeVideoId = source.Url.Substring(beginId, endId - beginId);
-                }
-                else if (urlLower.Contains("youtu.be"))
-                {
-                    var domain = urlLower.IndexOf("youtu.be", StringComparison.OrdinalIgnoreCase);
-                    var beginId = urlLower.IndexOf("/", domain, StringComparison.OrdinalIgnoreCase);
-                    var endId = urlLower.IndexOf("?", beginId, StringComparison.OrdinalIgnoreCase);
-                    // If we can't find a ? search for a &
-                    if (endId == -1)
-                    {
-                        endId = urlLower.IndexOf("&", beginId, StringComparison.OrdinalIgnoreCase);
-                    }
-
-                    if (beginId == -1) return youtubeVideoId;
-
-                    if (endId == -1)
-                    {
-                        endId = urlLower.Length;
-                    }
-                    // Important! Since this might be case sensitive use the original url!
-                    beginId++;
-                    youtubeVideoId = source.Url.Substring(beginId, endId - beginId);
-                }
-
-                return youtubeVideoId;
+                return YouTubeHelper.GetYoutubeId(source.Url);
             }
             catch (Exception)
             {

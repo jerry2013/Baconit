@@ -288,6 +288,8 @@
                                                     ItemContainerStyle="{StaticResource ListViewItemNoHighlight}"
                                                     ItemTemplate="{StaticResource SubredditItemItemDataTemplate}"
                                                     Padding="0,0,8,0"
+                                                    IsItemClickEnabled="True"
+                                                    ItemClick="PostList_Clicked"
                                                     SelectionChanged="PostList_SelectionChanged"
                                                     Style="{StaticResource ListViewStyle}">
                     <ListView.ItemContainerTransitions>

@@ -39,11 +39,11 @@ namespace Baconit.ContentPanels.Panels
                 await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () =>
                 {
                     // Setup the video
-                    _videoPlayer = new MediaElement {AutoPlay = false, AreTransportControlsEnabled = true};
+                    _videoPlayer = new MediaElement {AutoPlay = true, AreTransportControlsEnabled = true};
                     _videoPlayer.CurrentStateChanged += VideoPlayerOnCurrentStateChanged;
                     _videoPlayer.Source = source.VideoUrl;
                         _videoPlayer.AudioDeviceType = AudioDeviceType.Multimedia;
-                    _videoPlayer.IsMuted = false;
+                    _videoPlayer.IsMuted = true;
                     ui_contentRoot.Children.Add(_videoPlayer);
                 });
             });

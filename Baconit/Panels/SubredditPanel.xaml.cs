@@ -70,6 +70,10 @@ namespace Baconit.Panels
 
                     // Try to get the subreddit from the web
                     subreddit = await App.BaconMan.SubredditMan.GetSubredditFromWebByDisplayName((string)arguments[PanelManager.NavArgsSubredditName]);
+                    if (subreddit.DisplayName == null)
+                    {
+                        subreddit = null;
+                    }
 
                     // Hide the loading UI
                     // The loading ring will be set inactive by the animation complete
@@ -382,6 +386,11 @@ namespace Baconit.Panels
             ui_postList.SelectedIndex = -1;
         }
 
+        private void PostList_Clicked(object sender, ItemClickEventArgs e)
+        {
+            NavigateToFlipView(e.ClickedItem as Post);
+        }
+
         /// <summary>
         /// Fired when a post title is tapped.
         /// </summary>
@@ -393,7 +402,7 @@ namespace Baconit.Panels
             var tappedPost = (sender as FrameworkElement)?.DataContext as Post;
 
             // Go Go Go!
-            NavigateToFlipView(tappedPost);
+            //NavigateToFlipView(tappedPost);
         }
 
         /// <summary>

@@ -695,36 +695,56 @@ namespace Baconit
                 return;
             }
 
-            // Get the subreddits
-            var subreddits = App.BaconMan.SubredditMan.SubredditList;
-
             // Go through all of the subreddits and set the text
             var placementPos = 0;
-            foreach (var subreddit in subreddits)
+
+            if (query.StartsWith("r/"))
             {
-                if (!subreddit.DisplayName.ToLower().StartsWith(query)) continue;
-                switch (placementPos)
+                var name = query.Substring(2);
+                if (name.Length > 0)
                 {
-                    case 0:
-                        ui_quickSearchHiPriText.Text = "r/"+subreddit.DisplayName;
-                        ui_quickSearchHiPriText.DataContext = subreddit;
-                        break;
-                    case 1:
-                        ui_quickSearchMedPriText.Text = "r/" + subreddit.DisplayName;
-                        ui_quickSearchMedPriText.DataContext = subreddit;
-                        break;
-                    case 2:
-                        ui_quickSearchLowPriText.Text = "r/" + subreddit.DisplayName;
-                        ui_quickSearchLowPriText.DataContext = subreddit;
-                        break;
+                    ui_quickSearchHiPriText.Text = query;
+                    ui_quickSearchHiPriText.DataContext = new Subreddit
+                    {
+                        Id = "-",
+                        Title = name,
+                        DisplayName = name,
+                    };
+
+                    placementPos++;
                 }
+            }
+            else
+            {
+                // Get the subreddits
+                var subreddits = App.BaconMan.SubredditMan.SubredditList;
 
-                placementPos++;
-
-                // Break if done
-                if (placementPos == 3)
+                foreach (var subreddit in subreddits)
                 {
-                    break;
+                    if (!subreddit.DisplayName.ToLower().StartsWith(query)) continue;
+                    switch (placementPos)
+                    {
+                        case 0:
+                            ui_quickSearchHiPriText.Text = "r/" + subreddit.DisplayName;
+                            ui_quickSearchHiPriText.DataContext = subreddit;
+                            break;
+                        case 1:
+                            ui_quickSearchMedPriText.Text = "r/" + subreddit.DisplayName;
+                            ui_quickSearchMedPriText.DataContext = subreddit;
+                            break;
+                        case 2:
+                            ui_quickSearchLowPriText.Text = "r/" + subreddit.DisplayName;
+                            ui_quickSearchLowPriText.DataContext = subreddit;
+                            break;
+                    }
+
+                    placementPos++;
+
+                    // Break if done
+                    if (placementPos == 3)
+                    {
+                        break;
+                    }
                 }
             }
 
