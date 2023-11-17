@@ -46,6 +46,7 @@
                                            TextTrimming="WordEllipsis" />
                                 <TextBlock Margin="0"
                                            Foreground="{x:Bind DarkenedAccentColorBrush}"
+                                           Tapped="PostItem2_Tapped"
                                            Text="{x:Bind SubTextLine2PartTwo}"
                                            TextTrimming="WordEllipsis" />
                             </StackPanel>
@@ -225,7 +226,9 @@
                                                                  ItemTemplate="{StaticResource PostItemDataTemplate}"
                                                                  OnListEndDetectedEvent="PostList_OnListEndDetectedEvent"
                                                                  Padding="0,0,8,0"
-                                                                 SelectionChanged="PostList_SelectionChanged"
+                                                                 IsItemClickEnabled="True"
+                                                                 ItemClick="PostList_ItemClick"
+                                                                 SelectionMode="None"
                                                                  Style="{StaticResource ListViewStyle}">
 
                                 <helperControls:EndDetectingListView.HeaderTemplate>

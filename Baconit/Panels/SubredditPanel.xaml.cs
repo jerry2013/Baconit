@@ -70,7 +70,7 @@ namespace Baconit.Panels
 
                     // Try to get the subreddit from the web
                     subreddit = await App.BaconMan.SubredditMan.GetSubredditFromWebByDisplayName((string)arguments[PanelManager.NavArgsSubredditName]);
-                    if (subreddit.DisplayName == null)
+                    if (subreddit?.DisplayName == null)
                     {
                         subreddit = null;
                     }

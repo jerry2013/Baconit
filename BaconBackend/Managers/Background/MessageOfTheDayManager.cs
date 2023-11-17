@@ -1,4 +1,5 @@
 ﻿using BaconBackend.DataObjects;
+using BaconBackend.Helpers;
 using Newtonsoft.Json;
 using System;
 using System.IO;
@@ -94,20 +95,12 @@ namespace BaconBackend.Managers
         public async Task<MessageOfTheDay> GetNewMessage()
         {
             try
-            {             
+            {
                 // Make the request.
-                var webResult = await NetworkManager.MakeGetRequest(CMotdUrl);
-
-                // Get the input stream and json reader.
-                // NOTE!! We are really careful not to use a string here so we don't have to allocate a huge string.
-                var inputStream = await webResult.ReadAsInputStreamAsync();
-                using (var reader = new StreamReader(inputStream.AsStreamForRead()))
-                using (JsonReader jsonReader = new JsonTextReader(reader))
+                using (var webResult = await NetworkManager.MakeGetRequest(CMotdUrl))
                 {
-                    // Parse the Json as an object
-                    var serializer = new JsonSerializer();
-                    return await Task.Run(() => serializer.Deserialize<MessageOfTheDay>(jsonReader));
-                }                    
+                    return await NetworkManager.DeserializeObject<MessageOfTheDay>(webResult);
+                }
             }
             catch(Exception e)
             {

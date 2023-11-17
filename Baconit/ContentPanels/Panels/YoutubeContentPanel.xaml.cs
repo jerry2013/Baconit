@@ -1,15 +1,7 @@
 ﻿using Baconit.Interfaces;
 using System;
-using System.Diagnostics;
 using System.Linq;
-using System.Net;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Windows.System.Display;
-using Windows.UI.Core;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media;
 using BaconBackend.Helpers.YouTube;
 using BaconBackend.Managers;
 
@@ -21,16 +13,6 @@ namespace Baconit.ContentPanels.Panels
         /// Holds a reference to our base.
         /// </summary>
         private readonly IContentPanelBaseInternal _contentPanelBase;
-
-        /// <summary>
-        /// Holds a ref to the media element that is playing.
-        /// </summary>
-        private MediaElement _videoPlayer;
-
-        /// <summary>
-        /// Holds the request to not sleep the computer while a video is playing.
-        /// </summary>
-        private DisplayRequest _displayRequest;
 
         public YoutubeContentPanel(IContentPanelBaseInternal panelBase)
         {
@@ -73,24 +55,24 @@ namespace Baconit.ContentPanels.Panels
                 var youTubeVideoInfo = await GetYouTubeVideoInfoAsync(_contentPanelBase.Source);
                 var youtubeUrl = GetYouTubeUrl(youTubeVideoInfo);
 
-                // Back to the UI thread with pri
-                await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () =>
-                {
-                    if (string.IsNullOrWhiteSpace(youtubeUrl))
+                await _contentPanelBase.CreateVideoPlayerAsync(
+                    () =>
                     {
-                        // If we failed fallback to the browser.
-                        _contentPanelBase.FireOnFallbackToBrowser();
-                        TelemetryManager.ReportUnexpectedEvent(this, "FailedToGetYoutubeVideoAfterSuccess");
-                        return;
-                    }
-
-                    // Setup the video
-                    _videoPlayer = new MediaElement {AutoPlay = true, AreTransportControlsEnabled = true};
-                    _videoPlayer.CurrentStateChanged += VideoPlayerOnCurrentStateChanged;
-                    _videoPlayer.Source = new Uri(youtubeUrl);
-                    _videoPlayer.IsMuted = true;
-                    ui_contentRoot.Children.Add(_videoPlayer);
-                });
+                        if (string.IsNullOrWhiteSpace(youtubeUrl))
+                        {
+                            // If we failed fallback to the browser.
+                            _contentPanelBase.FireOnFallbackToBrowser();
+                            TelemetryManager.ReportUnexpectedEvent(this, "FailedToGetYoutubeVideoAfterSuccess");
+                            return null;
+                        }
+                        if (_contentPanelBase.IsDestroyed)
+                        {
+                            return null;
+                        }
+                        return new Uri(youtubeUrl);
+                    },
+                    (player) => ui_contentRoot.Children.Add(player)
+                );
             });
         }
 
@@ -99,18 +81,8 @@ namespace Baconit.ContentPanels.Panels
         /// </summary>
         public void OnDestroyContent()
         {
-            try
-            {
-                if (_videoPlayer == null) return;
-                _videoPlayer.CurrentStateChanged -= VideoPlayerOnCurrentStateChanged;
-                _videoPlayer.Stop();
-                _videoPlayer.Source = null;
-            }
-            finally
-            {
-                _videoPlayer = null;
-                ui_contentRoot.Children.Clear();
-            }
+            _contentPanelBase.DestroyVideoPlayer();
+            ui_contentRoot.Children.Clear();
         }
 
         /// <summary>
@@ -126,51 +98,7 @@ namespace Baconit.ContentPanels.Panels
         /// </summary>
         public void OnVisibilityChanged(bool isVisible)
         {
-            if(_videoPlayer != null && !isVisible)
-            {
-                _videoPlayer.Pause();
-            }
-        }
-
-        #endregion
-
-        #region Media Controls
-
-        /// <summary>
-        /// Fired when the media state changes
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void VideoPlayerOnCurrentStateChanged(object sender, RoutedEventArgs e)
-        {
-            // Check to hide the loading.
-            if (_videoPlayer.CurrentState != MediaElementState.Opening)
-            {
-                // When we get to the state paused hide loading.
-                if (_contentPanelBase.IsLoading)
-                {
-                    _contentPanelBase.FireOnLoading(false);
-                }
-            }
-
-            // If we are playing request for the screen not to turn off.
-            if (_videoPlayer.CurrentState == MediaElementState.Playing)
-            {
-                if (_displayRequest == null)
-                {
-                    _displayRequest = new DisplayRequest();
-                    _displayRequest.RequestActive();
-                }
-            }
-            else
-            {
-                // If anything else happens and we have a current request remove it.
-                if (_displayRequest != null)
-                {
-                    _displayRequest.RequestRelease();
-                    _displayRequest = null;
-                }
-            }
+            _contentPanelBase.ToggleVideoPlayer(isVisible);
         }
 
         #endregion

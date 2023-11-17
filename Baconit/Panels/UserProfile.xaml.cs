@@ -71,6 +71,11 @@ namespace Baconit.Panels
         /// </summary>
         private SortTypes _mCommentSort = SortTypes.New;
 
+        /// <summary>
+        /// The click has been handled by a child.
+        /// </summary>
+        private bool _isItemClickHandled= false;
+
         public UserProfile()
         {
             InitializeComponent();
@@ -328,15 +333,19 @@ namespace Baconit.Panels
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void PostList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void PostList_ItemClick(object sender, ItemClickEventArgs e)
         {
-            if(ui_postList.SelectedIndex == -1)
+            // yield to PostItem2_Tapped
+            await Task.Delay(TimeSpan.FromMilliseconds(1));
+
+            if (_isItemClickHandled)
             {
+                _isItemClickHandled = false;
                 return;
             }
 
             // Get the post
-            var tappedPost = (Post)ui_postList.SelectedItem;
+            var tappedPost = e.ClickedItem as Post;
 
             // Navigate to the post
             var args = new Dictionary<string, object>();
@@ -352,6 +361,16 @@ namespace Baconit.Panels
             ui_postList.SelectedIndex = -1;
 
             TelemetryManager.ReportEvent(this, "UserProfilePostOpened");
+        }
+
+        private void PostItem2_Tapped(object sender, TappedRoutedEventArgs e)
+        {
+            var subreddit = ((sender as TextBlock).DataContext as Post).Subreddit;
+            _isItemClickHandled = subreddit != null;
+            if (_isItemClickHandled)
+            {
+                App.BaconMan.ShowGlobalContent($"r/{subreddit}");
+            }
         }
 
         /// <summary>

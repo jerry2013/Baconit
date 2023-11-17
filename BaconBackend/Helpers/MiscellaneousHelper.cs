@@ -503,18 +503,18 @@ namespace BaconBackend.Helpers
             var urlLower = url.ToLower();
             RedditContentContainer container = null;
 
-            var uri = new Uri(urlLower);
+            var uri = new Uri(new Uri("https://reddit.com/"), urlLower);
 
             if (uri.Host.Equals("v.redd.it"))
             {
-                container = new RedditContentContainer
+                return new RedditContentContainer
                 {
                     Type = RedditContentType.Website,
                     Website = urlLower
                 };
             }
             // Try to find /r/ or r/ links
-            else if (urlLower.StartsWith("/r/") || urlLower.StartsWith("r/"))
+            if (urlLower.StartsWith("/r/") || urlLower.StartsWith("r/"))
             {
                 // Get the display name
                 var subStart = urlLower.IndexOf("r/", StringComparison.Ordinal);

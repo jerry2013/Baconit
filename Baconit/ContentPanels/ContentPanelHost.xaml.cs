@@ -176,16 +176,16 @@ namespace Baconit.ContentPanels
                 "SourceId",
                 typeof(string),
                 typeof(ContentPanelHost),
-                new PropertyMetadata(null, OnSoruceIdChangedStatic));
+                new PropertyMetadata(null, OnSourceIdChangedStatic));
 
-        private static void OnSoruceIdChangedStatic(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnSourceIdChangedStatic(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var instance = d as ContentPanelHost;
             // Send the post to the class.
-            instance?.OnSoruceIdChanged((string)e.OldValue, (string)e.NewValue);
+            instance?.OnSourceIdChanged((string)e.OldValue, (string)e.NewValue);
         }
 
-        private async void OnSoruceIdChanged(string oldValue, string newId)
+        private async void OnSourceIdChanged(string oldValue, string newId)
         {
             // Unregister
             if(!string.IsNullOrWhiteSpace(oldValue))
@@ -389,6 +389,8 @@ namespace Baconit.ContentPanels
             var panelBase = _mCurrentPanelBase;
             if (panelBase != null)
             {
+                TelemetryManager.ReportEvent(this, $"SetupLoading: IsLoading={panelBase.IsLoading} Source={panelBase.Source?.Id}");
+
                 // If we are turning on loading make the content transparent.
                 // Note is is important to not collapse, or the content might not load.
                 if (panelBase.IsLoading)
@@ -407,8 +409,8 @@ namespace Baconit.ContentPanels
         private void ToggleProgress(bool show, bool disableActive = false)
         {
             _mIsLoadingShowing = show;
-
-            if (show)
+            TelemetryManager.ReportEvent(this, $"ToggleProgress: disableActive={disableActive} show={show} Source={_mCurrentPanelBase?.Source?.Id}");
+            if (show && _mCurrentPanelBase?.Source != null)
             {
                 ui_progressRing.IsActive = !disableActive && show;
                 VisualStateManager.GoToState(this, "ShowProgressHolder", true);
@@ -730,6 +732,7 @@ namespace Baconit.ContentPanels
         {
             if(!_mIsNsfwShowing && !_mIsLoadingShowing && !_mIsGenericMessageShowing)
             {
+                TelemetryManager.ReportEvent(this, $"ShowContent: Source={_mCurrentPanelBase?.Source?.Id}");
                 ui_contentRoot.Opacity = 1;
             }
         }

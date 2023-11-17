@@ -332,7 +332,7 @@ namespace BaconBackend.Managers
             var postUrlLower = postUrl.ToLower();
 
             // Do a simple check.
-            if (postUrlLower.EndsWith(".png") || postUrlLower.EndsWith(".jpg") || postUrlLower.EndsWith(".bmp"))
+            if (postUrlLower.EndsWith(".png") || postUrlLower.EndsWith(".jpg") || postUrlLower.EndsWith(".jpeg") || postUrlLower.EndsWith(".bmp"))
             {
                 return postUrl;
             }
@@ -343,7 +343,7 @@ namespace BaconBackend.Managers
             if(postOfLastSlash != -1)
             {
                 // Check if we can find anything in the ending string.
-                if (postUrlLower.Contains(".png?") || postUrlLower.Contains(".jpg?") || postUrlLower.Contains(".bmp?"))
+                if (postUrlLower.Contains(".png?") || postUrlLower.Contains(".jpg?") || postUrlLower.Contains(".jpeg?") || postUrlLower.Contains(".bmp?"))
                 {
                     return postUrl;
                 }
@@ -390,7 +390,7 @@ namespace BaconBackend.Managers
             }
 
             // Try to get a quick meme image
-            if (!postUrlLower.Contains("quickmeme.com/")) return string.Empty;
+            if (postUrlLower.Contains("quickmeme.com/"))
             {
                 // Try to parse the URL to get the image
                 var last = postUrl.LastIndexOf('/');

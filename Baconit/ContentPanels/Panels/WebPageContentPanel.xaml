@@ -8,7 +8,7 @@
              d:DesignWidth="400"
              mc:Ignorable="d">
 
-    <Grid x:Name="ui_contentRoot">
+    <Grid x:Name="ui_contentRoot" Background="#191919">
 
         <!--  Web view overlays  -->
         <StackPanel x:Name="ui_webviewOverlays"

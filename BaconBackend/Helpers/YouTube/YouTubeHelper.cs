@@ -101,8 +101,10 @@ namespace BaconBackend.Helpers.YouTube
 
         private static async Task<string> HttpGetAsync(string uri)
         {
-            var response = await NetworkManager.MakeGetRequest(uri, string.Empty, BotUserAgent);
-            return await response.ReadAsStringAsync();
+            using (var response = await NetworkManager.MakeGetRequest(uri, string.Empty, BotUserAgent))
+            {
+                return await response.ReadAsStringAsync();
+            }
         }
     }
 }

@@ -1,15 +1,10 @@
 ﻿using Baconit.Interfaces;
 using Newtonsoft.Json;
 using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.Media.Core;
-using Windows.UI.Core;
-using Windows.UI.Xaml;
+using System.Text.RegularExpressions;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using BaconBackend.Helpers.RedGif;
 using BaconBackend.Managers;
 
@@ -26,11 +21,6 @@ namespace Baconit.ContentPanels.Panels
         /// Indicates if we should be playing or not.
         /// </summary>
         private bool _mShouldBePlaying;
-
-        /// <summary>
-        /// Holds a reference to the video we are playing.
-        /// </summary>
-        private MediaElement _mGifVideo;
 
         public GifImageContentPanel(IContentPanelBaseInternal panelBase)
         {
@@ -50,7 +40,8 @@ namespace Baconit.ContentPanels.Panels
             return 
                 !string.IsNullOrWhiteSpace(GetImgurUrl(source.Url)) || 
                 !string.IsNullOrWhiteSpace(GetGfyCatApiUrl(source.Url)) || 
-                !string.IsNullOrWhiteSpace(GetRedGifUrl(source.Url)) || 
+                !string.IsNullOrWhiteSpace(GetRedGifUrl(source.Url)) ||
+                !string.IsNullOrWhiteSpace(GetStreamableUrl(source.Url)) ||
                 !string.IsNullOrWhiteSpace(GetGifUrl(source.Url));
         }
 
@@ -71,61 +62,45 @@ namespace Baconit.ContentPanels.Panels
             // Run the rest on a background thread.
             Task.Run(async () =>
             {
-                var gifUrl = GetRedGifUrl(_mBase.Source.Url);
-
-                if (!string.IsNullOrWhiteSpace(gifUrl))
+                // Try to get the imgur url
+                var gifUrl = GetImgurUrl(_mBase.Source.Url);
+                if (gifUrl.Equals(string.Empty))
                 {
-                    gifUrl = await GetRedGifUrlFromWatchUrl(gifUrl);
+                    // Try to get the redgif url
+                    gifUrl = await GetRedGifUrlFromWatchUrl(GetRedGifUrl(_mBase.Source.Url));
+                    TelemetryManager.ReportEvent(this, $"Gif/R: {gifUrl}");
                 }
-                else
+                if (gifUrl.Equals(string.Empty))
                 {
-                    // Try to get the imgur url
-                    gifUrl = GetImgurUrl(_mBase.Source.Url);
-
-                    // If that failed try to get a url from GfyCat
-                    if (gifUrl.Equals(string.Empty))
-                    {
-                        // We have to get it from gfycat
-                        gifUrl = await GetGfyCatGifUrl(GetGfyCatApiUrl(_mBase.Source.Url));
-                    }
+                    // Try to get the streamable url
+                    gifUrl = await GetStreamableVideoUrl(GetStreamableUrl(_mBase.Source.Url));
+                    TelemetryManager.ReportEvent(this, $"Gif/S: {gifUrl}");
+                }
+                if (gifUrl.Equals(string.Empty))
+                {
+                    // We have to get it from gfycat
+                    gifUrl = await GetGfyCatGifUrl(GetGfyCatApiUrl(_mBase.Source.Url));
+                    TelemetryManager.ReportEvent(this, $"Gif/G: {gifUrl}");
                 }
 
                 // Since some of this can be costly, delay the work load until we aren't animating.
-                await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () =>
-                {
-                    // If we didn't get anything something went wrong.
-                    if (string.IsNullOrWhiteSpace(gifUrl))
+                await _mBase.CreateVideoPlayerAsync(
+                    () =>
                     {
-                        _mBase.FireOnFallbackToBrowser();
-                        TelemetryManager.ReportUnexpectedEvent(this, "FailedToShowGifAfterConfirm");
-                        return;
-                    }
-
-                    lock(this)
-                    {
-                        // Make sure we aren't destroyed.
+                        if (string.IsNullOrWhiteSpace(gifUrl))
+                        {
+                            _mBase.FireOnFallbackToBrowser();
+                            TelemetryManager.ReportUnexpectedEvent(this, "FailedToShowGifAfterConfirm");
+                            return null;
+                        }
                         if (_mBase.IsDestroyed)
                         {
-                            return;
+                            return null;
                         }
-
-                        // Create the media element
-                        _mGifVideo = new MediaElement
-                        {
-                            HorizontalAlignment = HorizontalAlignment.Stretch
-                        };
-                        _mGifVideo.Tapped += OnVideoTapped;
-                        _mGifVideo.CurrentStateChanged += OnVideoCurrentStateChanged;
-                        _mGifVideo.IsLooping = true;
-                        
-                        // Set the source
-                        _mGifVideo.Source = new Uri(gifUrl, UriKind.Absolute);
-                        _mGifVideo.Play();
-
-                        // Add the video to the root                    
-                        ui_contentRoot.Children.Add(_mGifVideo);
-                    }
-                });
+                        return new Uri(gifUrl, UriKind.Absolute);
+                    },
+                    (player) => ui_contentRoot.Children.Add(player)
+                );
             });
         }
 
@@ -136,14 +111,7 @@ namespace Baconit.ContentPanels.Panels
         {
             lock(this)
             {
-                // Destroy the video
-                if (_mGifVideo != null)
-                {
-                    _mGifVideo.CurrentStateChanged -= OnVideoCurrentStateChanged;
-                    _mGifVideo.Tapped -= OnVideoTapped;
-                    _mGifVideo.Stop();
-                    _mGifVideo = null;
-                }
+                _mBase.DestroyVideoPlayer();
 
                 // Clear vars
                 _mShouldBePlaying = false;
@@ -171,63 +139,7 @@ namespace Baconit.ContentPanels.Panels
                 // Set that we should be playing
                 _mShouldBePlaying = isVisible;
 
-                if (_mGifVideo != null)
-                {
-                    // Call the action. If we are already playing or paused this
-                    // will do nothing.
-                    if(isVisible)
-                    {
-                        _mGifVideo.Play();
-                    }
-                    else
-                    {
-                        _mGifVideo.Pause();
-                    }
-                }
-            }
-        }
-
-        #endregion
-
-        #region Video Playback
-
-        /// <summary>
-        /// Hides the loading and fades in the video when it start playing.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void OnVideoCurrentStateChanged(object sender, RoutedEventArgs e)
-        {
-            // If we start playing and the loading UI isn't hidden do so.
-            if (_mBase.IsLoading && _mGifVideo.CurrentState == MediaElementState.Playing)
-            {
-                _mBase.FireOnLoading(false);
-            }
-
-            // Make sure if we are playing that we should be (that we are actually visible)
-            if (!_mShouldBePlaying && _mGifVideo.CurrentState == MediaElementState.Playing)
-            {
-                _mGifVideo.Pause();
-            }            
-        }
-
-        /// <summary>
-        /// Fired when the gif is tapped
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void OnVideoTapped(object sender, TappedRoutedEventArgs e)
-        {
-            if (_mGifVideo != null)
-            {
-                if (_mGifVideo.CurrentState == MediaElementState.Playing)
-                {
-                    _mGifVideo.Pause();
-                }
-                else
-                {
-                    _mGifVideo.Play();
-                }
+                _mBase.ToggleVideoPlayer(isVisible);
             }
         }
 
@@ -243,6 +155,11 @@ namespace Baconit.ContentPanels.Panels
         private static string GetRedGifUrl(string postUrl)
         {
             return postUrl.Contains("redgifs.com/watch/") ? postUrl : string.Empty;
+        }
+
+        private static string GetStreamableUrl(string postUrl)
+        {
+            return postUrl.Contains("streamable.com/") ? postUrl : string.Empty;
         }
 
         /// <summary>
@@ -298,6 +215,8 @@ namespace Baconit.ContentPanels.Panels
         /// <returns></returns>
         private static string GetGfyCatApiUrl(string postUrl)
         {
+            return string.Empty;
+
             var uri = new Uri(postUrl);
             var authority = uri.Authority.Replace("/", string.Empty).ToLowerInvariant();
             var segment = uri.LocalPath.Substring(1);
@@ -369,17 +288,9 @@ namespace Baconit.ContentPanels.Panels
             try
             {
                 // Make the call
-                var webResult = await NetworkManager.MakeGetRequest(apiUrl);
-
-                // Get the input stream and json reader.
-                // NOTE!! We are really careful not to use a string here so we don't have to allocate a huge string.
-                var inputStream = await webResult.ReadAsInputStreamAsync();
-                using (var reader = new StreamReader(inputStream.AsStreamForRead()))
-                using (JsonReader jsonReader = new JsonTextReader(reader))
-                {           
-                    // Parse the Json as an object
-                    var serializer = new JsonSerializer();
-                    var gfyData = await Task.Run(() => serializer.Deserialize<GfyCatDataContainer>(jsonReader));
+                using (var webResult = await NetworkManager.MakeGetRequest(apiUrl))
+                {
+                    var gfyData = await NetworkManager.DeserializeObject<GfyCatDataContainer>(webResult);
 
                     // Validate the response
                     var mp4Url = gfyData.Item.Mp4Url;
@@ -390,7 +301,7 @@ namespace Baconit.ContentPanels.Panels
 
                     // Return the url
                     return mp4Url;
-                }     
+                }
             }
             catch (Exception e)
             {
@@ -398,6 +309,26 @@ namespace Baconit.ContentPanels.Panels
                 TelemetryManager.ReportUnexpectedEvent(this, "FaileGfyCatApiCall", e);
             }
 
+            return string.Empty;
+        }
+
+        private async Task<string> GetStreamableVideoUrl(string url)
+        {
+            // Return if we have nothing.
+            if (url.Equals(string.Empty))
+            {
+                return string.Empty;
+            }
+            var match = Regex.Match(new Uri(url).AbsolutePath, @"^/(?:[es]/)?(\w+)(?:/\w+)?$", RegexOptions.IgnoreCase);
+            if (match.Success)
+            {
+                using (var webResult = await NetworkManager.MakeGetRequest($"https://api.streamable.com/videos/{match.Value}"))
+                {
+                    var data = await NetworkManager.DeserializeObject<BaconBackend.Helpers.RES.ResHelper.StreamableInfo>(webResult);
+
+                    return data?.Files?.MP4?.Url ?? String.Empty;
+                }
+            }
             return string.Empty;
         }
 
@@ -429,17 +360,9 @@ namespace Baconit.ContentPanels.Panels
             {
                 var url = $"https://upload.gfycat.com/transcode?fetchUrl={gifUrl}";
                 // Make the call
-                var webResult = await NetworkManager.MakeGetRequest("https://upload.gfycat.com/transcode?fetchUrl="+gifUrl);
-
-                // Get the input stream and json reader.
-                // NOTE!! We are really careful not to use a string here so we don't have to allocate a huge string.
-                var inputStream = await webResult.ReadAsInputStreamAsync();
-                using (var reader = new StreamReader(inputStream.AsStreamForRead()))
-                using (JsonReader jsonReader = new JsonTextReader(reader))
+                using (var webResult = await NetworkManager.MakeGetRequest(url))
                 {
-                    // Parse the Json as an object
-                    var serializer = new JsonSerializer();
-                    var gfyData = await Task.Run(() => serializer.Deserialize<GfyCatConversionData>(jsonReader));
+                    var gfyData = await NetworkManager.DeserializeObject<GfyCatConversionData>(webResult);
 
                     // Validate the response
                     var mp4Url = gfyData.Mp4Url;

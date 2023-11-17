@@ -219,12 +219,12 @@ namespace BaconBackend.DataObjects
             foreach (var prop in props)
             {
                 var children = prop.Children().ToList();
-                var previews = children.SelectMany(p => p["p"]).Select(p => p.ToObject<PreviewMediaImage>()).Where(p => p != null).OrderBy(p => p.Width).ToList();
+                var previews = children.Where(p => p["p"] != null).SelectMany(p => p["p"]).Select(p => p.ToObject<PreviewMediaImage>()).Where(p => p != null).OrderBy(p => p.Width).ToList();
                 if (previews.Count.Equals(0))
                 {
                     continue;
                 }
-                var preview = previews.Any(p => p.Width > 640) ? previews.First(p => p.Width > 640) : previews.Last();
+                var preview = previews.FirstOrDefault(p => p.Width > 640) ?? previews.Last();
                 preview.MediaId = prop.Name;
                 previewImages.Add(preview);
             }

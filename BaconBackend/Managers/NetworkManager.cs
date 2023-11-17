@@ -26,8 +26,10 @@ namespace BaconBackend.Managers
         /// <returns></returns>
         public async Task<string> MakeRedditGetRequestAsString(string apiUrl)
         {
-            var content = await MakeRedditGetRequest(apiUrl);
-            return await content.ReadAsStringAsync();
+            using (var content = await MakeRedditGetRequest(apiUrl))
+            {
+                return await content.ReadAsStringAsync();
+            }
         }
 
         /// <summary>
@@ -37,7 +39,8 @@ namespace BaconBackend.Managers
         /// <returns></returns>
         public async Task<IHttpContent> MakeRedditGetRequest(string apiUrl)
         {
-            if (!_baconMan.UserMan.IsUserSignedIn) return await MakeGetRequest("https://www.reddit.com/" + apiUrl);
+            if (!_baconMan.UserMan.IsUserSignedIn)
+                return await MakeGetRequest("https://www.reddit.com/" + apiUrl);
             var accessToken = await _baconMan.UserMan.GetAccessToken();
             if(string.IsNullOrWhiteSpace(accessToken))
             {
@@ -56,8 +59,10 @@ namespace BaconBackend.Managers
         /// <returns></returns>
         public async Task<string> MakeRedditPostRequestAsString(string apiUrl, List<KeyValuePair<string, string>> postData)
         {
-            var content = await MakeRedditPostRequest(apiUrl, postData);
-            return await content.ReadAsStringAsync();
+            using (var content = await MakeRedditPostRequest(apiUrl, postData))
+            {
+                return await content.ReadAsStringAsync();
+            }
         }
 
         /// <summary>
@@ -100,16 +105,17 @@ namespace BaconBackend.Managers
             {
                 message.Headers["Authorization"] = authHeader;
             }
-            var response = await request.SendRequestAsync(message, HttpCompletionOption.ResponseHeadersRead);
-
-            if(response.StatusCode == HttpStatusCode.ServiceUnavailable ||
-                response.StatusCode == HttpStatusCode.BadGateway ||
-                response.StatusCode == HttpStatusCode.GatewayTimeout ||
-                response.StatusCode == HttpStatusCode.InternalServerError)
+            using (var response = await request.SendRequestAsync(message, HttpCompletionOption.ResponseHeadersRead))
             {
-                throw new ServiceDownException();
+                if (response.StatusCode == HttpStatusCode.ServiceUnavailable ||
+                    response.StatusCode == HttpStatusCode.BadGateway ||
+                    response.StatusCode == HttpStatusCode.GatewayTimeout ||
+                    response.StatusCode == HttpStatusCode.InternalServerError)
+                {
+                    throw new ServiceDownException();
+                }
+                return response.Content;
             }
-            return response.Content;
         }
 
         /// <summary>
@@ -181,7 +187,7 @@ namespace BaconBackend.Managers
         public static async Task<T> DeserializeObject<T>(IHttpContent content)
         {
             // NOTE!! We are really careful not to use a string here so we don't have to allocate a huge string.
-            var inputStream = await content.ReadAsInputStreamAsync();
+            using (var inputStream = await content.ReadAsInputStreamAsync())
             using (var reader = new StreamReader(inputStream.AsStreamForRead()))
             using (JsonReader jsonReader = new JsonTextReader(reader))
             {

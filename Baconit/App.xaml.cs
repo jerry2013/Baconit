@@ -157,6 +157,8 @@ namespace Baconit
             {
                 _mHasRegisteredForBack = true;
                 SystemNavigationManager.GetForCurrentView().BackRequested += OnBackRequested;
+                // Add support for mouse navigation buttons. 
+                Window.Current.CoreWindow.PointerPressed += CoreWindow_PointerPressed;
             }
 
             // Do not repeat app initialization when the Window already has content,
@@ -237,6 +239,16 @@ namespace Baconit
         {
             var isHandled = false;
             BaconMan.OnBackButton_Fired(ref isHandled);
+            e.Handled = isHandled;
+        }
+        private void CoreWindow_PointerPressed(CoreWindow sender, PointerEventArgs e)
+        {
+            // For this event, e.Handled arrives as 'true'.
+            var isHandled = false;
+            if (e.CurrentPoint.Properties.IsXButton1Pressed)
+            {
+                BaconMan.OnBackButton_Fired(ref isHandled);
+            }
             e.Handled = isHandled;
         }
 

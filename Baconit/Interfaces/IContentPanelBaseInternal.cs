@@ -1,4 +1,7 @@
 ﻿using Baconit.ContentPanels;
+using System.Threading.Tasks;
+using System;
+using Windows.UI.Xaml.Controls;
 
 namespace Baconit.Interfaces
 {
@@ -58,5 +61,11 @@ namespace Baconit.Interfaces
         /// the current control.
         /// </summary>
         void FireOnFallbackToBrowser();
+
+        Task CreateVideoPlayerAsync(Func<Uri> getUri, Action<MediaElement> callback);
+
+        void DestroyVideoPlayer();
+
+        void ToggleVideoPlayer(bool play);
     }
 }

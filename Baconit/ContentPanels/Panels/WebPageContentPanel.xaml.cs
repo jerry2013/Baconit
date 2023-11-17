@@ -1,13 +1,14 @@
 ﻿using Baconit.Interfaces;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using BaconBackend.Managers;
-using System.Linq;
-using BaconBackend.Helpers.YouTube;
+using BaconBackend.Helpers.RES;
+using System.Diagnostics;
 
 namespace Baconit.ContentPanels.Panels
 {
@@ -120,6 +121,7 @@ namespace Baconit.ContentPanels.Panels
             _webView.DOMContentLoaded += DomContentLoaded;
             _webView.ContentLoading += ContentLoading;
             _webView.ContainsFullScreenElementChanged += ContainsFullScreenElementChanged;
+            _webView.NavigationStarting += NavigationStarting;
 
             // Navigate
             try
@@ -127,18 +129,28 @@ namespace Baconit.ContentPanels.Panels
                 var uri = new Uri(_contentPanelBase.Source.Url, UriKind.Absolute);
                 if (uri.Segments.Last().EndsWith(".gif"))
                 {
+                    _webView.Settings.IsJavaScriptEnabled = false;
                     _webView.NavigateToString(
-                        $"<html><body style=\"background:#333\"><img style=\"display:block;margin:0 auto;max-width:100vw;max-height:100vh;\" src=\"{uri.AbsoluteUri}\"/></body></html>"
+                        $@"
+<html>
+ <body style=""display:flex;align-items:center;background:#191919;width:100%;height:100%"">
+  <img style=""display:block;margin:0 auto;max-width:100%;max-height:100%;outline:1px dotted #333"" src=""{uri.AbsoluteUri}""/>
+ </body>
+</html>"
                     );
                 }
                 else
                 {
-                    var youtubeId = YouTubeHelper.GetYoutubeId(uri.AbsoluteUri);
-                    if (youtubeId.Length > 0)
-                    {
-                        uri = new Uri($"https://www.youtube.com/embed/{youtubeId}?feature=oembed", UriKind.Absolute);
+                    var videoUri = ResHelper.GetVideoInfoAsync(uri);
+                    if (videoUri != null) {
+                        _webView.Settings.IsJavaScriptEnabled = true;
+                        _webView.Navigate(videoUri);
                     }
-                    _webView.Navigate(uri);
+                    else
+                    {
+                        _webView.Settings.IsJavaScriptEnabled = false;
+                        _webView.Navigate(uri);
+                    }
                 }
             }
             catch (Exception e)
@@ -146,9 +158,6 @@ namespace Baconit.ContentPanels.Panels
                 TelemetryManager.ReportUnexpectedEvent(this, "FailedToMakeUriInWebControl", e);
                 _contentPanelBase.FireOnError(true, "This web page failed to load");
             }
-
-            // Now add an event for navigating.
-            _webView.NavigationStarting += NavigationStarting;
 
             // Insert this before the full screen button.
             ui_contentRoot.Children.Insert(0, _webView);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace BaconBackend.Managers
 {
@@ -19,6 +20,9 @@ namespace BaconBackend.Managers
         /// <param name="eventName"></param>
         public static void ReportEvent(object component, string eventName)
         {
+#if DEBUG
+            Debug.WriteLine($"Event [{component.ToString()}] {eventName}");
+#endif
         }
 
         /// <summary>
@@ -39,6 +43,9 @@ namespace BaconBackend.Managers
         /// <param name="exception"></param>
         public static void ReportUnexpectedEvent(object component, string eventName, Exception exception = null)
         {
+#if DEBUG
+            Debug.WriteLine($"UnexpectedEvent [{component.ToString()}] {eventName}: {exception}");
+#endif
         }
 
         public static void TrackCrash(Exception exception, IDictionary<string, string> properties)

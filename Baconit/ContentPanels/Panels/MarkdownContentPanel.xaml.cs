@@ -60,6 +60,7 @@ namespace Baconit.ContentPanels.Panels
                 _markdownBlock.OnMarkdownLinkTapped += MarkdownBlock_OnMarkdownLinkTapped;
                 _markdownBlock.OnMarkdownReady += MarkdownBox_OnMarkdownReady;
                 _markdownBlock.Markdown = _contentPanelBase.Source.SelfText;
+                _markdownBlock.ParagraphMargin = new Thickness { Top = 15, Bottom = 15 };
 
                 var fontSizeBinding = new Binding
                 {

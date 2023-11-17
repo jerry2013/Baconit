@@ -5,6 +5,10 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Input;
+using Windows.System.Display;
 using BaconBackend.Managers;
 
 namespace Baconit.ContentPanels.Panels
@@ -58,6 +62,16 @@ namespace Baconit.ContentPanels.Panels
         /// Indicates if we have told the master we are done loading.
         /// </summary>
         private bool _hasDeclaredLoaded;
+
+        /// <summary>
+        /// The video player for the panel.
+        /// </summary>
+        private MediaElement _videoPlayer;
+
+        /// <summary>
+        /// Keep display on.
+        /// </summary>
+        private DisplayRequest _displayRequest;
 
         #region IContentPanelBaseInternal
 
@@ -328,6 +342,7 @@ namespace Baconit.ContentPanels.Panels
                         Panel = (IContentPanel)Activator.CreateInstance(controlType, this);
 
 #if DEBUG
+                        Debug.WriteLine("\n");
                         Debug.WriteLine($"Content Panel: {controlType.Name}");
                         Debug.WriteLine($"Source: {source}");
 #endif
@@ -347,6 +362,108 @@ namespace Baconit.ContentPanels.Panels
 
             // Indicate that we have loaded.
             return loadedPanel;
+        }
+
+        public async Task CreateVideoPlayerAsync(Func<Uri> getUri, Action<MediaElement> callback)
+        {
+            // Back to the UI thread with pri
+            await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.Low, () =>
+            {
+                var sourceUri = getUri.Invoke();
+                if (sourceUri == null)
+                {
+                    return;
+                }
+
+                // Setup the video
+                _videoPlayer = new MediaElement
+                {
+                    AutoPlay = false,
+                    IsLooping = true,
+                    IsMuted = true,
+                    AreTransportControlsEnabled = true,
+                    AudioDeviceType = AudioDeviceType.Multimedia,
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    Source = sourceUri,
+                };
+                _videoPlayer.TransportControls.IsCompact = true;
+
+                //_videoPlayer.Tapped += OnVideoTapped;
+                _videoPlayer.CurrentStateChanged += VideoPlayerOnCurrentStateChanged;
+
+                callback?.Invoke(_videoPlayer);
+            });
+        }
+
+        public void DestroyVideoPlayer()
+        {
+            try
+            {
+                if (_videoPlayer == null) return;
+                //_videoPlayer.Tapped -= OnVideoTapped;
+                _videoPlayer.CurrentStateChanged -= VideoPlayerOnCurrentStateChanged;
+                _videoPlayer.Stop();
+                _videoPlayer.Source = null;
+            }
+            finally
+            {
+                _displayRequest?.RequestRelease();
+                _displayRequest = null;
+                _videoPlayer = null;
+            }
+        }
+
+        public void ToggleVideoPlayer(bool play)
+        {
+            if (_videoPlayer == null) return;
+
+            _videoPlayer.AutoPlay = play;
+            if (play)
+            {
+                _videoPlayer.Play();
+            }
+            else
+            {
+                _videoPlayer.Pause();
+            }
+        }
+
+        /// <summary>
+        /// Fired when the video is tapped
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnVideoTapped(object sender, TappedRoutedEventArgs e)
+        {
+            ToggleVideoPlayer(_videoPlayer.CurrentState != MediaElementState.Playing);
+        }
+
+        private void VideoPlayerOnCurrentStateChanged(object sender, RoutedEventArgs e)
+        {
+            // Check to hide the loading.
+            if (_videoPlayer.CurrentState != MediaElementState.Opening)
+            {
+                // When we get to the state paused hide loading.
+                if (IsLoading)
+                {
+                    FireOnLoading(false);
+                }
+            }
+
+            // If we are playing request for the screen not to turn off.
+            if (_videoPlayer.CurrentState == MediaElementState.Playing)
+            {
+                if (_displayRequest != null) return;
+                _displayRequest = new DisplayRequest();
+                _displayRequest.RequestActive();
+            }
+            else
+            {
+                // If anything else happens and we have a current request remove it.
+                if (_displayRequest == null) return;
+                _displayRequest.RequestRelease();
+                _displayRequest = null;
+            }
         }
 
         #endregion

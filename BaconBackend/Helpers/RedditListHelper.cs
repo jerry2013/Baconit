@@ -185,31 +185,17 @@ namespace BaconBackend.Helpers
                 // This will hold the root
                 RootElement<T> root;
 
-                // Get the input stream and json reader.
-                // NOTE!! We are really careful not to use a string here so we don't have to allocate a huge string.
-                var inputStream = await webResult.ReadAsInputStreamAsync();
-                using (var reader = new StreamReader(inputStream.AsStreamForRead()))
-                using (JsonReader jsonReader = new JsonTextReader(reader))
+                // Check if we have an array root or a object root
+                if (_isArrayRoot)
                 {
-                    // Check if we have an array root or a object root
-                    if (_isArrayRoot)
-                    {
-                        // Parse the Json as an object
-                        var serializer = new JsonSerializer();
-                        var arrayRoot = await Task.Run(() => serializer.Deserialize<List<RootElement<T>>>(jsonReader));
-
-                        // Use which ever list element we want.
-                        root = _takeFirstArrayRoot ? arrayRoot[0] : arrayRoot[1];
-                    }
-                    else
-                    {
-                        // Parse the Json as an object
-                        var serializer = new JsonSerializer();
-                        //var val = await jsonReader.ReadAsStringAsync();
-                        root = await Task.Run(() => serializer.Deserialize<RootElement<T>>(jsonReader));
-                    }
+                    var arrayRoot = await NetworkManager.DeserializeObject<List<RootElement<T>>>(webResult);
+                    // Use which ever list element we want.
+                    root = _takeFirstArrayRoot ? arrayRoot[0] : arrayRoot[1];
                 }
-
+                else
+                {
+                    root = await NetworkManager.DeserializeObject<RootElement<T>>(webResult);
+                }
              
                 // Copy the new contents into the current cache
                 _currentElementList.Children.AddRange(root.Data.Children);

@@ -3,7 +3,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using BaconBackend.Managers;
 using Newtonsoft.Json;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace BaconBackend.Helpers.RedGif
 {
@@ -36,13 +35,15 @@ namespace BaconBackend.Helpers.RedGif
         
         private static async Task<string> HttpGetAsync(string uri)
         {
-            var response = await NetworkManager.MakeGetRequest(uri, string.Empty);
-            var content = await response.ReadAsStringAsync();
-
-            var matches = rx.Matches(content);
-            if (matches.Count > 0)
+            using (var response = await NetworkManager.MakeGetRequest(uri, string.Empty))
             {
-                return matches[0].Groups["url"].Value;
+                var content = await response.ReadAsStringAsync();
+
+                var matches = rx.Matches(content);
+                if (matches.Count > 0)
+                {
+                    return matches[0].Groups["url"].Value;
+                }
             }
 
             return String.Empty;

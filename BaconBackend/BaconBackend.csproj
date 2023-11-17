@@ -116,6 +116,7 @@
     <Compile Include="Helpers\RedditListHelper.cs" />
     <Compile Include="Helpers\RedGif\RedGifHelper.cs" />
     <Compile Include="Helpers\RefCountedDeferral.cs" />
+    <Compile Include="Helpers\RES\ResHelper.cs" />
     <Compile Include="Helpers\SmartWeakEvent.cs" />
     <Compile Include="Helpers\TimeToTextHelper.cs" />
     <Compile Include="Helpers\TrendingSubredditsHelper.cs" />
